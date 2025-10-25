@@ -1,0 +1,9 @@
+fastapi>=0.120.0
+pytest>=8.4.2
+uvicorn>=0.38.0
+structlog>=25.4.0
+
+# dev deps
+black
+mypy
+ruff
