@@ -4,6 +4,9 @@ ENV WEB_CONCURRENCY=4
 
 ENV PYTHONUNBUFFERED=1
 
+RUN apt update && \
+    apt install -y libpq-dev
+
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /uvx /bin/
