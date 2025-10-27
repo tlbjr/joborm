@@ -1,9 +1,12 @@
 fastapi>=0.120.0
+pydantic_settings>=2.11.0
+psycopg>=3.2.12
 pytest>=8.4.2
-uvicorn>=0.38.0
 structlog>=25.4.0
+uvicorn>=0.38.0
 
 # dev deps
 black
 mypy
 ruff
+testcontainers[postgres]

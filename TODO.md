@@ -1,16 +1,15 @@
 ## DO ##
 1. Proper persistent datastore
-    * Sqlite to start or straight to postgres? Or keyval store?
+    * Postgres? Or keyval / document store?
 
 ## PUNT ##
-1. Use BaseSettings for env overrides
-2. Frontend
-3. Multiuser
+1. Frontend
+2. Multiuser
     * API_KEY, oauth, or both?
-4. (Some) shared data models
+3. (Some) shared data models
     * Who's allowed to edit and add companies and opportunities?
     * Maybe the user "requests" a new record and puts in details + a URL.
-5. Data scraper(s)
+4. Data scraper(s)
     * Company info
         * Official
         * Crunchbase
@@ -19,11 +18,11 @@
     * Position info
         * Official JD
         * LinkedIn, etc. links
-6. Async tasks (long running)
-7. docker-compose
-8. Create pytest tests
-9. Use testcontainers
-10. Service stack as VS code tasks
+5. Async tasks (long running); rq? celery? argo workflow?
+6. docker-compose
+7. Create pytest tests
+8. Use testcontainers
+9. Service stack as VS code tasks
 
 ## DONE ##
 * Basic README.
@@ -34,4 +33,5 @@
 * Basic Dockerfile.
 * Basic tmux devloop boot stript.
 * Basic mono repo stub.
+* Basic BaseSettings for env overrides
 * Move to public GH repo.

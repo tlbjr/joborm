@@ -5,9 +5,19 @@ This is a shim for a proper "get record by uuid" query system"""
 import traceback
 from typing import Any, List
 
+from sqlmodel import create_engine, Session
 import structlog
 
+from config import settings
+
 logger = structlog.stdlib.get_logger()
+
+engine = create_engine(settings.POSTGRESQL_URI, connect_args={"pool_pre_ping": True})
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
 
 
 def _get_by_id(collection: List[Any], id_: str):
