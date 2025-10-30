@@ -12,7 +12,7 @@ from config import settings
 
 logger = structlog.stdlib.get_logger()
 
-engine = create_engine(str(settings.POSTGRESQL_URI), connect_args={"pool_pre_ping": True})
+engine = create_engine(settings.POSTGRESQL_URI, connect_args={"pool_pre_ping": True})
 
 
 def get_session():

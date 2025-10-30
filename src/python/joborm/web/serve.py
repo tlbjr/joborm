@@ -6,7 +6,7 @@ from fastapi import FastAPI, Response
 import structlog
 
 # TODO Persistence throwaway stubs; replace with real datastore
-from db.db import _get_by_id, _delete_record, _insert_record, _update_record
+from db.pg import _get_by_id, _delete_record, _insert_record, _update_record
 from schemas import Company, Opportunity
 
 # TODO Junk seeding data for test; remove when datastore is in place
