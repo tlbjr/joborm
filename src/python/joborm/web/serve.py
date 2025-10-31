@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """REST API for Job Opportunity Relationship Management"""
 import sys
+from typing import Annotated
+from uuid import UUID
 
-from fastapi import FastAPI, Response
+from fastapi import Depends, FastAPI, Response
 import structlog
 
-# TODO Persistence throwaway stubs; replace with real datastore
-from db.pg import _get_by_id, _delete_record, _insert_record, _update_record
-from schemas import Company, Opportunity
+from db.pg import get_session, Session
+from db.services import CompanySvc, OpportunitySvc
+from db.models import Company
+from schemas import Opportunity
 
 # TODO Junk seeding data for test; remove when datastore is in place
-from sample_data import companies, opportunities
+# from sample_data import companies, opportunities
 
 logger = structlog.stdlib.get_logger()
 
 app = FastAPI()
+
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
 # TODO Implement BaseSettings for env vars and/or secrets injection
@@ -30,57 +35,59 @@ async def about():
 
 # TODO Move resource groups to routers: app.include_router(company.router)
 @app.get("/company/{company_id}", response_model=Company)
-async def get_company(company_id: str) -> Response:
+async def get_company(company_id: UUID, session: SessionDep) -> Response:
     """Retreive the company specified by id"""
 
-    company = _get_by_id(companies, company_id)
+    company = CompanySvc.get_by_id(session, company_id)
     if company is None:
         return Response('{"detail": "Not found"}', 404)
     return company
 
 
 @app.post("/company", response_model=Company)
-async def create_company(company: Company) -> Company | Response:
+async def create_company(company: Company, session: SessionDep) -> Company | Response:
     """Create a company resource"""
 
     # TODO Additional validation and dupe detection
-    success = _insert_record(companies, company)
+    success = CompanySvc.insert_company(session, company)
     if success is False:
         return Response('{"detail": "Error creating company"}', 422)
     return company
 
 
 @app.put("/company/{company_id}", response_model=Company)
-async def update_company(company_id: str, company: Company) -> Company | Response:
+async def update_company(
+    company_id: UUID, company: Company, session: SessionDep
+) -> Company | Response:
     """Update a company resource"""
 
     if company_id != getattr(company, "id", None):
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    company_check = _get_by_id(companies, company_id)
+    company_check = CompanySvc.get_by_id(session, company_id)
     if company_check is None:
         return Response('{"detail": "Not found"}', 404)
 
-    success = _update_record(companies, company)
+    success = CompanySvc.update_record(session, company)
     if success is False:
         return Response('{"detail": "Error updating company"}', 422)
     return company
 
 
 @app.delete("/company/{company_id}", response_model=None)
-async def delete_company(company_id: str) -> None | Response:
+async def delete_company(company_id: UUID, session: SessionDep) -> None | Response:
     """Delete a company resource"""
 
-    company = _get_by_id(companies, company_id)
+    company = CompanySvc.get_by_id(session, company_id)
     if company is None:
         return Response('{"detail": "Not found"}', 404)
 
     # TODO cascade (or force) parameter
     # Don't allow deletion if a foreign key relationship exists
-    prevent_deletion = any([opp and opp.company_id == company_id for opp in opportunities])
-    if prevent_deletion:
+    # prevent_deletion = any([opp and opp.company_id == company_id for opp in opportunities])
+    if any(company.opportunities):  # prevent_deletion:
         return Response('{"detail": "Cannot delete due to relationships"}', 422)
-    success = _delete_record(companies, company)
+    success = CompanySvc.delete_company(session, company)
     if success is False:
         return Response('{"detail": "Error deleting company"}', 422)
 
@@ -89,16 +96,16 @@ async def delete_company(company_id: str) -> None | Response:
 
 # TODO Move resource groups to routers: app.include_router(opportunity.router)
 @app.get("/opportunity/{opportunity_id}", response_model=Opportunity)
-async def get_opportunity(opportunity_id: str) -> Response:
+async def get_opportunity(opportunity_id: UUID, session: SessionDep) -> Response:
     """Retreive the opportunity specified by id"""
 
-    opportunity = _get_by_id(opportunities, opportunity_id)
+    opportunity = Opportunity.get_by_id(opportunity_id)
     if opportunity is None:
         return Response('{"detail": "Not found"}', 404)
 
     # TODO Move this into record fetch as we'll have referential integrity
     # Augment opportunity with company data
-    company = _get_by_id(companies, opportunity.company_id)
+    company = CompanySvc.get_by_id(session, opportunity.company_id)
     if company is None:
         logger.debug(f"Failed to fetch opportunity's company {opportunity.company_id=}.")
         return Response('{"detail": "Unable to fetch dependent record"}', 500)
@@ -107,10 +114,12 @@ async def get_opportunity(opportunity_id: str) -> Response:
 
 
 @app.post("/opportunity", response_model=Opportunity)
-async def create_opportunity(opportunity: Opportunity) -> Opportunity | Response:
+async def create_opportunity(
+    opportunity: Opportunity, session: SessionDep
+) -> Opportunity | Response:
     """Create an opportunity resource"""
     # TODO Additional validation and dupe detection
-    success = _insert_record(opportunities, opportunity)
+    success = OpportunitySvc.insert_opportunity(session, opportunity)
     if success is False:
         return Response('{"detail": "Error creating opportunity"}', 500)
     return opportunity
@@ -118,30 +127,30 @@ async def create_opportunity(opportunity: Opportunity) -> Opportunity | Response
 
 @app.put("/opportunity/{opportunity_id}", response_model=Opportunity)
 async def update_opportunity(
-    opportunity_id: str, opportunity: Opportunity
+    opportunity_id: UUID, opportunity: Opportunity, session: SessionDep
 ) -> Opportunity | Response:
     """Update an opportunity resource"""
     if opportunity_id != getattr(opportunity, "id", None):
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    opportunity_check = _get_by_id(opportunities, opportunity_id)
+    opportunity_check = OpportunitySvc.get_by_id(session, opportunity_id)
     if opportunity_check is None:
         return Response('{"detail": "Not found"}', 404)
 
-    success = _update_record(opportunities, opportunity)
+    success = OpportunitySvc.update_record(session, opportunity)
     if success is False:
         return Response('{"detail": "Error updating opportunity"}', 500)
     return opportunity
 
 
 @app.delete("/opportunity/{opportunity_id}", response_model=None)
-async def delete_opportunity(opportunity_id: str) -> None | Response:
+async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None | Response:
     """Delete an opportunity resource"""
-    opportunity = _get_by_id(opportunities, opportunity_id)
+    opportunity = OpportunitySvc.get_by_id(session, opportunity_id)
     if opportunity is None:
         return Response('{"detail": "Not found"}', 404)
     # TODO opportunities don't have dependencies; implement a delete check later
-    success = _delete_record(opportunities, opportunity)
+    success = OpportunitySvc.delete_opportunity(session, opportunity)
     if success is False:
         return Response('{"detail": "Error deleting opportunity"}', 422)
     return None
