@@ -9,8 +9,7 @@ import structlog
 
 from db.pg import get_session, Session
 from db.services import CompanySvc, OpportunitySvc
-from db.models import Company
-from schemas import Opportunity
+from db.models import Company, Opportunity
 
 # TODO Junk seeding data for test; remove when datastore is in place
 # from sample_data import companies, opportunities
@@ -108,11 +107,11 @@ async def get_opportunity(opportunity_id: UUID, session: SessionDep) -> Response
 
     # TODO Move this into record fetch as we'll have referential integrity
     # Augment opportunity with company data
-    company = session.get(Company, opportunity.company_id)
-    if company is None:
-        logger.debug(f"Failed to fetch opportunity's company {opportunity.company_id=}.")
-        return Response('{"detail": "Unable to fetch dependent record"}', 500)
-    opportunity.company = company
+    # company = session.get(Company, opportunity.company_id)
+    # if company is None:
+    #    logger.debug(f"Failed to fetch opportunity's company {opportunity.company_id=}.")
+    #    return Response('{"detail": "Unable to fetch dependent record"}', 500)
+    # opportunity.company = company
     return opportunity
 
 
@@ -133,14 +132,18 @@ async def update_opportunity(
     opportunity_id: UUID, opportunity: Opportunity, session: SessionDep
 ) -> Opportunity | Response:
     """Update an opportunity resource"""
-    if opportunity_id != getattr(opportunity, "id", None):
+
+    if str(opportunity_id) != opportunity.id:
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    opportunity_check = session.get(Opportunity, opportunity_id)
-    if opportunity_check is None:
+    existing_opportunity = session.get(Opportunity, opportunity_id)
+    if existing_opportunity is None:
         return Response('{"detail": "Not found"}', 404)
 
-    success = OpportunitySvc.update_opportunity(session, opportunity)
+    opportunity.id = UUID(opportunity.id)  # fix warn: expected UUID instead of str
+    opportunity_data = opportunity.model_dump(exclude_unset=True)
+    existing_opportunity.sqlmodel_update(opportunity_data)
+    success = OpportunitySvc.update_opportunity(session, existing_opportunity)
     if success is False:
         return Response('{"detail": "Error updating opportunity"}', 500)
     return opportunity
@@ -149,7 +152,7 @@ async def update_opportunity(
 @app.delete("/opportunity/{opportunity_id}", response_model=None)
 async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None | Response:
     """Delete an opportunity resource"""
-    opportunity = session.gert(Opportunity, opportunity_id)
+    opportunity = session.get(Opportunity, opportunity_id)
     if opportunity is None:
         return Response('{"detail": "Not found"}', 404)
     # TODO opportunities don't have dependencies; implement a delete check later

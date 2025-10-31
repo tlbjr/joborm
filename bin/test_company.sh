@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 BASE_URL=http://127.0.0.1:8000
 
-echo "Not a UUID"
-curl -s $BASE_URL/company/xyz | jq .
-
 echo "Not found"
 curl -s $BASE_URL/company/5804cabc-11f9-43b0-a2b2-d6a966bdcf33 | jq .
+
+echo "Not a UUID"
+curl -s $BASE_URL/company/xyz | jq .
 
 #echo "Existing"
 #curl -s $BASE_URL/company/1 | jq .
