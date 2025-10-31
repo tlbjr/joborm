@@ -38,7 +38,7 @@ async def about():
 async def get_company(company_id: UUID, session: SessionDep) -> Response:
     """Retreive the company specified by id"""
 
-    company = CompanySvc.get_by_id(session, company_id)
+    company = session.get(Company, company_id)
     if company is None:
         return Response('{"detail": "Not found"}', 404)
     return company
@@ -61,33 +61,36 @@ async def update_company(
 ) -> Company | Response:
     """Update a company resource"""
 
-    if company_id != getattr(company, "id", None):
+    if str(company_id) != company.id:
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    company_check = CompanySvc.get_by_id(session, company_id)
-    if company_check is None:
+    existing_company = session.get(Company, company_id)
+    if existing_company is None:
         return Response('{"detail": "Not found"}', 404)
 
-    success = CompanySvc.update_record(session, company)
+    company.id = UUID(company.id)  # fix warn: expected UUID instead of str
+    company_data = company.model_dump(exclude_unset=True)
+    existing_company.sqlmodel_update(company_data)
+    success = CompanySvc.update_company(session, existing_company)
     if success is False:
         return Response('{"detail": "Error updating company"}', 422)
-    return company
+    return existing_company
 
 
 @app.delete("/company/{company_id}", response_model=None)
 async def delete_company(company_id: UUID, session: SessionDep) -> None | Response:
     """Delete a company resource"""
 
-    company = CompanySvc.get_by_id(session, company_id)
-    if company is None:
+    existing_company = session.get(Company, company_id)
+    if existing_company is None:
         return Response('{"detail": "Not found"}', 404)
 
     # TODO cascade (or force) parameter
     # Don't allow deletion if a foreign key relationship exists
     # prevent_deletion = any([opp and opp.company_id == company_id for opp in opportunities])
-    if any(company.opportunities):  # prevent_deletion:
+    if any(existing_company.opportunities):  # prevent_deletion:
         return Response('{"detail": "Cannot delete due to relationships"}', 422)
-    success = CompanySvc.delete_company(session, company)
+    success = CompanySvc.delete_company(session, existing_company)
     if success is False:
         return Response('{"detail": "Error deleting company"}', 422)
 
@@ -99,13 +102,13 @@ async def delete_company(company_id: UUID, session: SessionDep) -> None | Respon
 async def get_opportunity(opportunity_id: UUID, session: SessionDep) -> Response:
     """Retreive the opportunity specified by id"""
 
-    opportunity = Opportunity.get_by_id(opportunity_id)
+    opportunity = session.get(Opportunity, opportunity_id)
     if opportunity is None:
         return Response('{"detail": "Not found"}', 404)
 
     # TODO Move this into record fetch as we'll have referential integrity
     # Augment opportunity with company data
-    company = CompanySvc.get_by_id(session, opportunity.company_id)
+    company = session.get(Company, opportunity.company_id)
     if company is None:
         logger.debug(f"Failed to fetch opportunity's company {opportunity.company_id=}.")
         return Response('{"detail": "Unable to fetch dependent record"}', 500)
@@ -133,11 +136,11 @@ async def update_opportunity(
     if opportunity_id != getattr(opportunity, "id", None):
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    opportunity_check = OpportunitySvc.get_by_id(session, opportunity_id)
+    opportunity_check = session.get(Opportunity, opportunity_id)
     if opportunity_check is None:
         return Response('{"detail": "Not found"}', 404)
 
-    success = OpportunitySvc.update_record(session, opportunity)
+    success = OpportunitySvc.update_opportunity(session, opportunity)
     if success is False:
         return Response('{"detail": "Error updating opportunity"}', 500)
     return opportunity
@@ -146,7 +149,7 @@ async def update_opportunity(
 @app.delete("/opportunity/{opportunity_id}", response_model=None)
 async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None | Response:
     """Delete an opportunity resource"""
-    opportunity = OpportunitySvc.get_by_id(session, opportunity_id)
+    opportunity = session.gert(Opportunity, opportunity_id)
     if opportunity is None:
         return Response('{"detail": "Not found"}', 404)
     # TODO opportunities don't have dependencies; implement a delete check later

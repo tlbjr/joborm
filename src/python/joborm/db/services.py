@@ -18,9 +18,11 @@ class CompanySvc:
         return session.scalars(select(Company).where(Company.id == company_id)).first()
 
     @classmethod
-    def update_company(cls, session, company: Company) -> None:
+    def update_company(cls, session, company: Company) -> Company:
         session.add(company)
         session.commit()
+        session.refresh(company)
+        return company
 
     @classmethod
     def delete_company(cls, session, company: Company) -> None:

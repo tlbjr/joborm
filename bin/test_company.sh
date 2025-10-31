@@ -16,14 +16,14 @@ curl -s $BASE_URL/company/5804cabc-11f9-43b0-a2b2-d6a966bdcf33 | jq .
 #curl -s $BASE_URL/company/1 -X PUT -d '{"id": "3", "name": "New Corp"}' -H "Content-Type: application/json" | jq .
 
 echo "Create new"
-NEW_ID=`curl -s $BASE_URL/company -d '{"name": "New Corp"}' -H "Content-Type: application/json" | jq -r .id`
-echo $NEW_ID
+curl -s $BASE_URL/company -d '{"name": "New Corp", "github": "gh"}' -H "Content-Type: application/json" | jq . | tee /tmp/test_new_company.json
+NEW_ID=`jq -r .id /tmp/test_new_company.json`
 
 echo "Fail to update"
 curl -s $BASE_URL/company/$NEW_ID -X PUT -d '{"id": "7", "name": "New Corp"}' -H "Content-Type: application/json" | jq .
 
 echo "Update"
-curl -s $BASE_URL/company/$NEW_ID -X PUT -d '{"id": "3", "name": "NCorp"}' -H "Content-Type: application/json" | jq .
+curl -s $BASE_URL/company/$NEW_ID -X PUT -d '{"id": "'"$NEW_ID"'", "name": "NCorp"}' -H "Content-Type: application/json" | jq .
 
 echo "Delete new"
 curl -s -X DELETE $BASE_URL/company/$NEW_ID

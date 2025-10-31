@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: HttpUrl | None = None
 
+    POOL_PRE_PING: bool = True
+    POSTGRES_ECHO: bool = False
+
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "postgres"
@@ -19,7 +22,7 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def POSTGRESQL_URI(self) -> str:
+    def POSTGRES_URI(self) -> str:
         return str(
             PostgresDsn.build(
                 scheme="postgresql+psycopg",
