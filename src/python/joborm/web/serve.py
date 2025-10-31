@@ -9,7 +9,7 @@ import structlog
 
 from db.pg import get_session, Session
 from db.services import CompanySvc, OpportunitySvc
-from db.models import Company, Opportunity
+from db.models import Company, CompanyCreate, Opportunity, OpportunityCreate
 
 # TODO Junk seeding data for test; remove when datastore is in place
 # from sample_data import companies, opportunities
@@ -44,14 +44,16 @@ async def get_company(company_id: UUID, session: SessionDep) -> Response:
 
 
 @app.post("/company", response_model=Company)
-async def create_company(company: Company, session: SessionDep) -> Company | Response:
+async def create_company(company: CompanyCreate, session: SessionDep) -> Company | Response:
     """Create a company resource"""
 
     # TODO Additional validation and dupe detection
-    success = CompanySvc.insert_company(session, company)
+    company_data = company.model_dump(exclude_unset=True)
+    company_new = Company.model_validate(company_data)
+    success = CompanySvc.insert_company(session, company_new)
     if success is False:
         return Response('{"detail": "Error creating company"}', 422)
-    return company
+    return company_new
 
 
 @app.put("/company/{company_id}", response_model=Company)
@@ -62,6 +64,9 @@ async def update_company(
 
     if str(company_id) != company.id:
         return Response('{"detail": "Non matching ids given"}', 422)
+
+    if not company.id:
+        return Response('{"detail": "Invalid company_id"}', 422)
 
     existing_company = session.get(Company, company_id)
     if existing_company is None:
@@ -117,14 +122,21 @@ async def get_opportunity(opportunity_id: UUID, session: SessionDep) -> Response
 
 @app.post("/opportunity", response_model=Opportunity)
 async def create_opportunity(
-    opportunity: Opportunity, session: SessionDep
+    opportunity: OpportunityCreate, session: SessionDep
 ) -> Opportunity | Response:
     """Create an opportunity resource"""
+
+    #if not opportunity.company_id:
+    #    return Response('{"detail": "Invalid company_id"}', 422)
+
+    opportunity_data = opportunity.model_dump(exclude_unset=True)
+    opportunity_new = Opportunity.model_validate(opportunity_data)
+
     # TODO Additional validation and dupe detection
-    success = OpportunitySvc.insert_opportunity(session, opportunity)
+    success = OpportunitySvc.insert_opportunity(session, opportunity_new)
     if success is False:
         return Response('{"detail": "Error creating opportunity"}', 500)
-    return opportunity
+    return opportunity_new
 
 
 @app.put("/opportunity/{opportunity_id}", response_model=Opportunity)
@@ -136,11 +148,18 @@ async def update_opportunity(
     if str(opportunity_id) != opportunity.id:
         return Response('{"detail": "Non matching ids given"}', 422)
 
+    if not opportunity.id:
+        return Response('{"detail": "Invalid opportunity_id"}', 422)
+
+    if not opportunity.company_id:
+        return Response('{"detail": "Invalid company_id"}', 422)
+
     existing_opportunity = session.get(Opportunity, opportunity_id)
     if existing_opportunity is None:
         return Response('{"detail": "Not found"}', 404)
 
     opportunity.id = UUID(opportunity.id)  # fix warn: expected UUID instead of str
+    opportunity.company_id = UUID(opportunity.company_id)  # fix warn: expected UUID instead of str
     opportunity_data = opportunity.model_dump(exclude_unset=True)
     existing_opportunity.sqlmodel_update(opportunity_data)
     success = OpportunitySvc.update_opportunity(session, existing_opportunity)

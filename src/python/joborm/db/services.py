@@ -1,7 +1,3 @@
-import uuid
-
-from sqlmodel import select
-
 from db.models import Company, Opportunity, Process, ProcessItem
 
 
@@ -15,8 +11,8 @@ class CompanySvc:
         return company
 
     # Use session.get instead
-    #@classmethod
-    #def get_by_id(cls, session, company_id: uuid.UUID) -> Company:
+    # @classmethod
+    # def get_by_id(cls, session, company_id: uuid.UUID) -> Company:
     #    return session.scalars(select(Company).where(Company.id == company_id)).first()
 
     @classmethod
@@ -44,8 +40,8 @@ class OpportunitySvc:
         return opportunity
 
     # Use session.get instead
-    #@classmethod
-    #def get_by_id(cls, session, opportunity_id: uuid.UUID) -> Opportunity:
+    # @classmethod
+    # def get_by_id(cls, session, opportunity_id: uuid.UUID) -> Opportunity:
     #    return session.scalars(select(Opportunity).where(Opportunity.id == opportunity_id)).first()
 
     @classmethod

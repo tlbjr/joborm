@@ -44,7 +44,7 @@ def run_migrations_offline() -> None:
 
     """
     # url = config.get_main_option("sqlalchemy.url")
-    url = settings.POSTGRESQL_URI
+    url = settings.POSTGRES_URI
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -68,7 +68,7 @@ def run_migrations_online() -> None:
     #    prefix="sqlalchemy.",
     #    poolclass=pool.NullPool,
     # )
-    connectable = create_engine(settings.POSTGRESQL_URI)
+    connectable = create_engine(settings.POSTGRES_URI)
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
