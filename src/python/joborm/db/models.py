@@ -1,28 +1,29 @@
-from typing import List, Literal
+from typing import List
 
 from pydantic import ConfigDict
 from sqlmodel import Field, Relationship, SQLModel
 import uuid_utils.compat as uuid
 
-from shared import CompanyType, ProcessItemType
+from shared import CompanyType, ContactType, LocationType, ProcessItemType
 
 
-class JobORMBase(SQLModel):
+class JoboBase(SQLModel):
     pass
 
 
-class CompanyCreate(JobORMBase):
+class CompanyCreate(JoboBase):
     name: str
     url: str | None = ""
     linkedin: str | None = ""
     glassdoor: str | None = ""
     github: str | None = ""
     size: int | None = None
-    type_: CompanyType = CompanyType.UNKNOWN
+    company_type: CompanyType = CompanyType.UNKNOWN
 
     model_config = ConfigDict(use_enum_values=True)
 
-class Company(JobORMBase, table=True):
+
+class Company(JoboBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
     name: str
     url: str | None = ""
@@ -30,59 +31,55 @@ class Company(JobORMBase, table=True):
     glassdoor: str | None = ""
     github: str | None = ""
     size: int | None = None
-    type_: CompanyType = CompanyType.UNKNOWN
+    company_type: CompanyType = CompanyType.UNKNOWN
 
-    opportunities: list["Opportunity"] = Relationship(back_populates="company")
+    opportunities: List["Opportunity"] = Relationship(back_populates="company")
 
     model_config = ConfigDict(use_enum_values=True)
 
 
-class ProcessItem(JobORMBase, table=True):
-    id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
-    process_id: uuid.UUID = Field(foreign_key="process.id")
-    type_: ProcessItemType = ProcessItemType.UNKNOWN
-    location: str = Literal["in-person", "remote", "either", "unknown"]
-    with_: str = Literal["external", "internal", "unknown"]
+class ProcessItemCreate(JoboBase):
+    item_type: ProcessItemType = ProcessItemType.UNKNOWN
+    location_type: LocationType = LocationType.UNKNOWN
+    contact_type: ContactType = ContactType.UNKNOWN
     group: bool = False
     order: int = 0
 
-    process: "Process" = Relationship(back_populates="items")
+    model_config = ConfigDict(use_enum_values=True)
 
 
-class Process(JobORMBase, table=True):
+class ProcessItem(JoboBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
-    opportunity_id: uuid.UUID = Field(foreign_key="opportunity.id")
+    process_id: uuid.UUID = Field(foreign_key="process.id")
+    item_type: ProcessItemType = ProcessItemType.UNKNOWN
+    location_type: LocationType = LocationType.UNKNOWN
+    contact_type: ContactType = ContactType.UNKNOWN
+    group: bool = False
+    order: int = 0
 
-    items: List[ProcessItem] = Relationship(back_populates="process")
-
-    opportunity: "Opportunity" = Relationship(back_populates="process")
-
-
-class OpportunityCreate(JobORMBase):
-    company_id: uuid.UUID
-    position: str
-    url: str | None = ""
-    location: Literal["in-person", "remote", "unknown"] = "unknown"
-    team: str | None = ""
-    team_size: int | None = None
-    team_size_growth: int | None = None
-    remote: bool | None = None
-    hybrid: bool | None = None
-    comp_base_range: str | None = ""
-    total_comp: str | None = ""
-    equity: str | None = ""
-    ai_usage: Literal["no", "encouraged", "forced", "unknown"] = "unknown"
-    longer_hours: bool | None = None
+    # process: "Process" = Relationship(back_populates="items")
 
     model_config = ConfigDict(use_enum_values=True)
 
 
-class Opportunity(JobORMBase, table=True):
+class ProcessCreate(JoboBase):
+    opportunity_id: uuid.UUID
+    items: List[ProcessItemCreate]
+
+
+class Process(JoboBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
-    company_id: uuid.UUID = Field(foreign_key="company.id")
+    opportunity_id: uuid.UUID = Field(foreign_key="opportunity.id")
+
+    # items: List[ProcessItem] = Relationship(back_populates="process")
+    opportunity: "Opportunity" = Relationship(back_populates="processes")
+
+
+class OpportunityCreate(JoboBase):
+    company_id: uuid.UUID
     position: str
     url: str | None = ""
-    # location: Literal["in-person", "remote", "unknown"] = "unknown"
+    location_type: LocationType = LocationType.UNKNOWN
     team: str | None = ""
     team_size: int | None = None
     team_size_growth: int | None = None
@@ -94,7 +91,27 @@ class Opportunity(JobORMBase, table=True):
     # ai_usage: Literal["no", "encouraged", "forced", "unknown"] = "unknown"
     longer_hours: bool | None = None
 
-    process: Process = Relationship(back_populates="opportunity")
+    model_config = ConfigDict(use_enum_values=True)
+
+
+class Opportunity(JoboBase, table=True):
+    id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
+    company_id: uuid.UUID = Field(foreign_key="company.id")
+    position: str
+    url: str | None = ""
+    location_type: LocationType = LocationType.UNKNOWN
+    team: str | None = ""
+    team_size: int | None = None
+    team_size_growth: int | None = None
+    remote: bool | None = None
+    hybrid: bool | None = None
+    comp_base_range: str | None = ""
+    total_comp: str | None = ""
+    equity: str | None = ""
+    # ai_usage: Literal["no", "encouraged", "forced", "unknown"] = "unknown"
+    longer_hours: bool | None = None
+
+    processes: list[Process] = Relationship(back_populates="opportunity")
 
     company: Company = Relationship(back_populates="opportunities")
 

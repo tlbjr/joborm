@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column("github", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("size", sa.Integer(), nullable=True),
         sa.Column(
-            "type_",
+            "company_type",
             sa.Enum(
                 "SEED",
                 "SERIES_A",
@@ -60,6 +60,17 @@ def upgrade() -> None:
         sa.Column("company_id", sa.Uuid(), nullable=False),
         sa.Column("position", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("url", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column(
+            "location_type",
+            sa.Enum(
+                "INPERSON",
+                "REMOTE",
+                "EITHER",
+                "UNKNOWN",
+                name="locationtype",
+            ),
+            nullable=False,
+        ),
         sa.Column("team", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("team_size", sa.Integer(), nullable=True),
         sa.Column("team_size_growth", sa.Integer(), nullable=True),
@@ -89,7 +100,7 @@ def upgrade() -> None:
         "processitem",
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column(
-            "type_",
+            "item_type",
             sa.Enum(
                 "SCREEN_RECRUITER",
                 "SCREEN_HIRING_MANAGER",
@@ -107,8 +118,27 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("location", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("with_", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column(
+            "location_type",
+            sa.Enum(
+                "INPERSON",
+                "REMOTE",
+                "EITHER",
+                "UNKNOWN",
+                name="locationtype",
+            ),
+            nullable=False,
+        ),
+        sa.Column(
+            "contact_type",
+            sa.Enum(
+                "EXTERNAL",
+                "INTERNAL",
+                "UNKNOWN",
+                name="contacttype",
+            ),
+            nullable=False,
+        ),
         sa.Column("group", sa.Boolean(), nullable=False),
         sa.Column("process_id", sa.Uuid(), nullable=False),
         sa.Column("order", sa.Integer(), nullable=False),
@@ -130,4 +160,6 @@ def downgrade() -> None:
     op.drop_table("company")
     op.execute("DROP TYPE processitemtype")
     op.execute("DROP TYPE companytype")
+    op.execute("DROP TYPE locationtype")
+    op.execute("DROP TYPE contacttype")
     # ### end Alembic commands ###

@@ -8,8 +8,16 @@ from fastapi import Depends, FastAPI, Response
 import structlog
 
 from db.pg import get_session, Session
-from db.services import CompanySvc, OpportunitySvc
-from db.models import Company, CompanyCreate, Opportunity, OpportunityCreate
+from db.services import CompanySvc, OpportunitySvc, ProcessSvc
+from db.models import (
+    Company,
+    CompanyCreate,
+    Opportunity,
+    OpportunityCreate,
+    Process,
+    ProcessItem,
+    ProcessCreate,
+)
 
 # TODO Junk seeding data for test; remove when datastore is in place
 # from sample_data import companies, opportunities
@@ -53,6 +61,8 @@ async def create_company(company: CompanyCreate, session: SessionDep) -> Company
     success = CompanySvc.insert_company(session, company_new)
     if success is False:
         return Response('{"detail": "Error creating company"}', 422)
+    session.commit()
+    session.refresh(company_new)
     return company_new
 
 
@@ -78,6 +88,8 @@ async def update_company(
     success = CompanySvc.update_company(session, existing_company)
     if success is False:
         return Response('{"detail": "Error updating company"}', 422)
+    session.commit()
+    session.refresh(existing_company)
     return existing_company
 
 
@@ -98,6 +110,7 @@ async def delete_company(company_id: UUID, session: SessionDep) -> None | Respon
     if success is False:
         return Response('{"detail": "Error deleting company"}', 422)
 
+    session.commit()
     return None
 
 
@@ -126,7 +139,7 @@ async def create_opportunity(
 ) -> Opportunity | Response:
     """Create an opportunity resource"""
 
-    #if not opportunity.company_id:
+    # if not opportunity.company_id:
     #    return Response('{"detail": "Invalid company_id"}', 422)
 
     opportunity_data = opportunity.model_dump(exclude_unset=True)
@@ -136,6 +149,9 @@ async def create_opportunity(
     success = OpportunitySvc.insert_opportunity(session, opportunity_new)
     if success is False:
         return Response('{"detail": "Error creating opportunity"}', 500)
+
+    session.commit()
+    session.refresh(opportunity_new)
     return opportunity_new
 
 
@@ -165,19 +181,118 @@ async def update_opportunity(
     success = OpportunitySvc.update_opportunity(session, existing_opportunity)
     if success is False:
         return Response('{"detail": "Error updating opportunity"}', 500)
-    return opportunity
+
+    session.commit()
+    session.refresh(existing_opportunity)
+    return existing_opportunity
 
 
 @app.delete("/opportunity/{opportunity_id}", response_model=None)
 async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None | Response:
     """Delete an opportunity resource"""
-    opportunity = session.get(Opportunity, opportunity_id)
-    if opportunity is None:
+    existing_opportunity = session.get(Opportunity, opportunity_id)
+    if existing_opportunity is None:
         return Response('{"detail": "Not found"}', 404)
-    # TODO opportunities don't have dependencies; implement a delete check later
-    success = OpportunitySvc.delete_opportunity(session, opportunity)
+    if any(existing_opportunity.processes):  # prevent_deletion:
+        return Response('{"detail": "Cannot delete due to relationships"}', 422)
+    success = OpportunitySvc.delete_opportunity(session, existing_opportunity)
     if success is False:
         return Response('{"detail": "Error deleting opportunity"}', 422)
+    session.commit()
+    return None
+
+
+# TODO Move resource groups to routers: app.include_router(process.router)
+@app.get("/process/{process_id}", response_model=Process)
+async def get_process(process_id: UUID, session: SessionDep) -> Process | Response:
+    """Retreive the process specified by id"""
+
+    process = session.get(Process, process_id)
+    if process is None:
+        return Response('{"detail": "Not found"}', 404)
+    return process
+
+
+@app.post("/process", response_model=Process)
+async def create_process(process: ProcessCreate, session: SessionDep) -> Process | Response:
+    """Create a process resource"""
+
+    # TODO Additional validation and dupe detection
+    process_data = process.model_dump(exclude_unset=True)
+    print(f"before {process_data=}")
+    items = process_data.pop("items")
+    print(f"after {process_data=}")
+    print(f"after {items=}")
+    process_new = Process.model_validate(process_data)
+    success = ProcessSvc.insert_process(session, process_new)
+    print(f"after {process_new=}")
+    if success is False:
+        return Response('{"detail": "Error creating process"}', 422)
+    for idx, item in enumerate(items):
+        item["order"] = idx
+        item["process_id"] = process_new.id
+        item_new = ProcessItem.model_validate(item)
+        print(f"before {item_new=}")
+        ProcessSvc.insert_process_item(session, item_new)
+        print(f"after {item_new=}")
+        if success is False:
+            return Response('{"detail": "Error creating process items"}', 422)
+
+    # TODO Move to middleware or something similar
+    session.commit()
+    session.refresh(process_new)
+    return process_new
+
+
+@app.put("/process/{process_id}", response_model=Process)
+async def update_process(
+    process_id: UUID, process: Process, session: SessionDep
+) -> Process | Response:
+    """Update a company resource"""
+
+    if str(process_id) != process.id:
+        return Response('{"detail": "Non matching ids given"}', 422)
+
+    if not process.id:
+        return Response('{"detail": "Invalid process_id"}', 422)
+
+    existing_process = session.get(Process, process_id)
+    if existing_process is None:
+        return Response('{"detail": "Not found"}', 404)
+
+    process.id = UUID(process.id)  # fix warn: expected UUID instead of str
+    process_data = process.model_dump(exclude_unset=True)
+    existing_process.sqlmodel_update(process_data)
+    success = ProcessSvc.update_process(session, existing_process)
+    if success is False:
+        return Response('{"detail": "Error updating company"}', 422)
+
+    session.commit()
+    session.refresh(existing_process)
+    return existing_process
+
+
+@app.delete("/process/{process_id}", response_model=None)
+async def delete_process(process_id: UUID, session: SessionDep) -> None | Response:
+    """Delete a process resource"""
+
+    existing_process = session.get(Process, process_id)
+    if existing_process is None:
+        return Response('{"detail": "Not found"}', 404)
+
+    # TODO cascade (or force) parameter
+    # Don't allow deletion if a foreign key relationship exists
+    # if any(items):  # prevent_deletion:
+    #    return Response('{"detail": "Cannot delete due to relationships"}', 422)
+    items = ProcessSvc.get_process_items(session, process_id)
+    if items:
+        logger.warn("Deleting items from process before process deletion")
+        ProcessSvc.delete_process_items(session, process_id)
+    success = ProcessSvc.delete_process(session, existing_process)
+    if success is False:
+        return Response('{"detail": "Error deleting process"}', 422)
+
+    session.commit()
     return None
 
 

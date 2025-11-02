@@ -18,6 +18,7 @@ curl -s $BASE_URL/company/xyz | jq .
 echo "Create new"
 curl -s $BASE_URL/company -d '{"name": "New Corp", "github": "gh"}' -H "Content-Type: application/json" | jq . | tee /tmp/test_new_company.json
 NEW_ID=`jq -r .id /tmp/test_new_company.json`
+echo NEW_ID $NEW_ID
 
 echo "Fail to update (Not a UUID)"
 curl -s $BASE_URL/company/7 -X PUT -d '{"id": "7", "name": "New Corp"}' -H "Content-Type: application/json" | jq .
@@ -32,4 +33,4 @@ echo "Update"
 curl -s $BASE_URL/company/$NEW_ID -X PUT -d '{"id": "'"$NEW_ID"'", "name": "NCorp"}' -H "Content-Type: application/json" | jq .
 
 echo "Delete new"
-curl -s -X DELETE $BASE_URL/company/$NEW_ID
+curl -s -X DELETE $BASE_URL/company/$NEW_ID | jq .

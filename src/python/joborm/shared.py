@@ -36,3 +36,20 @@ class ProcessItemType(StrEnum):
     PRODUCT = "Product"
     EXECUTIVE = "Executive"
     UNKNOWN = "Unknown"
+
+
+class LocationType(StrEnum):
+    """The type of location"""
+
+    INPERSON = "In-person"
+    REMOTE = "Remote"
+    EITHER = "Either"
+    UNKNOWN = "Unknown"
+
+
+class ContactType(StrEnum):
+    """The type of with"""
+
+    EXTERNAL = "External"
+    INTERNAL = "Internal"
+    UNKNOWN = "Unknown"
