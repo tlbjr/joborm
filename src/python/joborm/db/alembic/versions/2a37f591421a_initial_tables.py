@@ -52,6 +52,20 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("created_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("updated_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -80,6 +94,20 @@ def upgrade() -> None:
         sa.Column("total_comp", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("equity", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("longer_hours", sa.Boolean(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("created_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("updated_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.ForeignKeyConstraint(
             ["company_id"],
             ["company.id"],
@@ -91,6 +119,20 @@ def upgrade() -> None:
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.Column("opportunity_id", sa.Uuid(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("created_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("updated_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.ForeignKeyConstraint(
             ["opportunity_id"],
             ["opportunity.id"],
@@ -142,6 +184,20 @@ def upgrade() -> None:
         sa.Column("group", sa.Boolean(), nullable=False),
         sa.Column("process_id", sa.Uuid(), nullable=False),
         sa.Column("order", sa.Integer(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("created_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
+        ),
+        sa.Column("updated_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.ForeignKeyConstraint(
             ["process_id"],
             ["process.id"],

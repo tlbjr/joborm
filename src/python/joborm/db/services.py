@@ -2,33 +2,48 @@ import uuid
 
 from sqlmodel import delete, select
 
-from db.models import Company, Opportunity, Process, ProcessItem, ProcessItemCreate
+from db.models import (
+    CompanyCreate,
+    CompanyPublic,
+    CompanyRecord,
+    CompanyUpdate,
+    Opportunity,
+    Process,
+    ProcessItem,
+    ProcessItemCreate,
+)
 
 
 class CompanySvc:
     @classmethod
-    def insert_company(cls, session, company: Company) -> Company:
+    def insert_company(cls, session, company: CompanyCreate) -> CompanyRecord:
         """Create a company record"""
-        session.add(company)
+        company_rec = CompanyRecord.model_validate(company)
+        session.add(company_rec)
         session.flush()
-        session.refresh(company)
-        return company
-
-    # Use session.get instead
-    # @classmethod
-    # def get_by_id(cls, session, company_id: uuid.UUID) -> Company:
-    #    return session.scalars(select(Company).where(Company.id == company_id)).first()
+        session.refresh(company_rec)
+        return company_rec
 
     @classmethod
-    def update_company(cls, session, company: Company) -> Company:
+    def get_by_id(cls, session, company_id: uuid.UUID) -> CompanyRecord | None:
+        """Return a company record by id"""
+        return session.scalars(select(CompanyRecord).where(CompanyRecord.id == company_id)).first()
+
+    @classmethod
+    def update_company(cls, session, company: CompanyUpdate) -> CompanyPublic:
         """Update a company record"""
-        session.add(company)
+        existing_company = cls.get_by_id(session, company.id)
+        if existing_company is None:
+            return None
+        update_data = company.model_dump(exclude_unset=True)
+        existing_company.sqlmodel_update(update_data)
+        session.add(existing_company)
         session.flush()
-        session.refresh(company)
-        return company
+        session.refresh(existing_company)
+        return existing_company
 
     @classmethod
-    def delete_company(cls, session, company: Company) -> None:
+    def delete_company(cls, session, company: CompanyUpdate) -> None:
         """Delete a company record"""
         session.delete(company)
         session.flush()

@@ -1,7 +1,13 @@
-from typing import List
+from datetime import datetime
+
+try:
+    from datetime import UTC
+except Exception as _:
+    from datetime.timezone import utc as UTC
+from typing import List, Optional
 
 from pydantic import ConfigDict
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import DateTime, Field, Relationship, SQLModel
 import uuid_utils.compat as uuid
 
 from shared import CompanyType, ContactType, LocationType, ProcessItemType
@@ -11,7 +17,25 @@ class JoboBase(SQLModel):
     pass
 
 
-class CompanyCreate(JoboBase):
+class JoboRecordBase(JoboBase):
+    created_at: Optional[datetime] = Field(
+        sa_type=DateTime(timezone=True),
+        default_factory=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+    created_by: Optional[str] = ""
+    updated_at: Optional[datetime] = Field(
+        sa_type=DateTime(timezone=True),
+        default_factory=lambda: datetime.now(UTC),
+        sa_column_kwargs={"onupdate": lambda: datetime.now(UTC)},
+        nullable=False,
+    )
+    updated_by: Optional[str] = ""
+
+
+class CompanyBase(JoboBase):
+    """All the loose fields for a company"""
+
     name: str
     url: str | None = ""
     linkedin: str | None = ""
@@ -23,19 +47,30 @@ class CompanyCreate(JoboBase):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class Company(JoboBase, table=True):
+class CompanyCreate(CompanyBase):
+    """Just loose fields when creating a company"""
+
+    pass
+
+
+class CompanyUpdate(CompanyBase):
+    """Updating or soft-deleting a company requires it's id"""
+
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
-    name: str
-    url: str | None = ""
-    linkedin: str | None = ""
-    glassdoor: str | None = ""
-    github: str | None = ""
-    size: int | None = None
-    company_type: CompanyType = CompanyType.UNKNOWN
 
-    opportunities: List["Opportunity"] = Relationship(back_populates="company")
 
-    model_config = ConfigDict(use_enum_values=True)
+class CompanyPublic(CompanyUpdate):
+    """Company's are returned with their opportunities or an empty list"""
+
+    opportunities: List["Opportunity"] = []
+
+
+class CompanyRecord(CompanyUpdate, JoboRecordBase, table=True):
+    """Company records have working relationships and basic audit fields"""
+
+    __tablename__ = "company"
+
+    opportunities: Optional[List["Opportunity"]] = Relationship(back_populates="company")
 
 
 class ProcessItemCreate(JoboBase):
@@ -48,7 +83,8 @@ class ProcessItemCreate(JoboBase):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class ProcessItem(JoboBase, table=True):
+class ProcessItem(JoboRecordBase, table=True):
+    __tablename__ = "processitem"
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
     process_id: uuid.UUID = Field(foreign_key="process.id")
     item_type: ProcessItemType = ProcessItemType.UNKNOWN
@@ -67,7 +103,8 @@ class ProcessCreate(JoboBase):
     items: List[ProcessItemCreate]
 
 
-class Process(JoboBase, table=True):
+class Process(JoboRecordBase, table=True):
+    __tablename__ = "process"
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
     opportunity_id: uuid.UUID = Field(foreign_key="opportunity.id")
 
@@ -94,7 +131,8 @@ class OpportunityCreate(JoboBase):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class Opportunity(JoboBase, table=True):
+class Opportunity(JoboRecordBase, table=True):
+    __tablename__ = "opportunity"
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
     company_id: uuid.UUID = Field(foreign_key="company.id")
     position: str
@@ -113,6 +151,6 @@ class Opportunity(JoboBase, table=True):
 
     processes: list[Process] = Relationship(back_populates="opportunity")
 
-    company: Company = Relationship(back_populates="opportunities")
+    company: CompanyRecord = Relationship(back_populates="opportunities")
 
     model_config = ConfigDict(use_enum_values=True)

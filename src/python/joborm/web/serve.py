@@ -10,8 +10,10 @@ import structlog
 from db.pg import get_session, Session
 from db.services import CompanySvc, OpportunitySvc, ProcessSvc
 from db.models import (
-    Company,
     CompanyCreate,
+    CompanyPublic,
+    CompanyRecord,
+    CompanyUpdate,
     Opportunity,
     OpportunityCreate,
     Process,
@@ -41,52 +43,44 @@ async def about():
 
 
 # TODO Move resource groups to routers: app.include_router(company.router)
-@app.get("/company/{company_id}", response_model=Company)
+@app.get("/company/{company_id}", response_model=CompanyPublic)
 async def get_company(company_id: UUID, session: SessionDep) -> Response:
     """Retreive the company specified by id"""
 
-    company = session.get(Company, company_id)
+    company = CompanySvc.get_by_id(session, company_id)
     if company is None:
         return Response('{"detail": "Not found"}', 404)
     return company
 
 
-@app.post("/company", response_model=Company)
-async def create_company(company: CompanyCreate, session: SessionDep) -> Company | Response:
+@app.post("/company", response_model=CompanyPublic)
+async def create_company(company: CompanyCreate, session: SessionDep) -> CompanyPublic | Response:
     """Create a company resource"""
 
     # TODO Additional validation and dupe detection
     company_data = company.model_dump(exclude_unset=True)
-    company_new = Company.model_validate(company_data)
-    success = CompanySvc.insert_company(session, company_new)
-    if success is False:
+    company_new = CompanySvc.insert_company(session, company_data)
+    if company_new is None:
         return Response('{"detail": "Error creating company"}', 422)
     session.commit()
     session.refresh(company_new)
     return company_new
 
 
-@app.put("/company/{company_id}", response_model=Company)
+@app.put("/company/{company_id}", response_model=CompanyPublic)
 async def update_company(
-    company_id: UUID, company: Company, session: SessionDep
-) -> Company | Response:
+    company_id: UUID, company: CompanyUpdate, session: SessionDep
+) -> CompanyPublic | Response:
     """Update a company resource"""
 
-    if str(company_id) != company.id:
+    if company_id != company.id:
         return Response('{"detail": "Non matching ids given"}', 422)
 
-    if not company.id:
+    if not company.id:  # TODO Is this pydantic validation working already?
         return Response('{"detail": "Invalid company_id"}', 422)
 
-    existing_company = session.get(Company, company_id)
+    existing_company = CompanySvc.update_company(session, company)
     if existing_company is None:
-        return Response('{"detail": "Not found"}', 404)
-
-    company.id = UUID(company.id)  # fix warn: expected UUID instead of str
-    company_data = company.model_dump(exclude_unset=True)
-    existing_company.sqlmodel_update(company_data)
-    success = CompanySvc.update_company(session, existing_company)
-    if success is False:
         return Response('{"detail": "Error updating company"}', 422)
     session.commit()
     session.refresh(existing_company)
@@ -97,7 +91,7 @@ async def update_company(
 async def delete_company(company_id: UUID, session: SessionDep) -> None | Response:
     """Delete a company resource"""
 
-    existing_company = session.get(Company, company_id)
+    existing_company = session.get(CompanyRecord, company_id)
     if existing_company is None:
         return Response('{"detail": "Not found"}', 404)
 

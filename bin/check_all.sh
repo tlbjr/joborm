@@ -5,9 +5,9 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR=$SCRIPT_DIR/..
 
-source bin/setup.sh
+source ${ROOT_DIR}/bin/setup.sh
 
-./bin/fmt.sh
-./bin/lint.sh $1
-./bin/type_check.sh
-./bin/docker.sh
+${ROOT_DIR}/bin/fmt.sh
+${ROOT_DIR}/bin/lint.sh $1
+${ROOT_DIR}/bin/type_check.sh
+${ROOT_DIR}/bin/docker.sh

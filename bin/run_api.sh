@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR=$SCRIPT_DIR/..
 
-source ${ROOT_DIR}/bin/setup.sh
+export PYTHONPATH=${ROOT_DIR}/src/python/joborm
 
-ruff check ${ROOT_DIR} $1
+${ROOT_DIR}/venv/bin/uvicorn --reload web.serve:app
