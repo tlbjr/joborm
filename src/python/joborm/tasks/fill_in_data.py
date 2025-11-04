@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, UTC
 import os
 
+from ddgs import DDGS
 from sqlmodel import select, Session
 import structlog
 
@@ -15,8 +16,13 @@ TIME_BUDGET = os.getenv("FEED_TIME_BUDGET", 20)
 ITEM_BUDGET = os.getenv("FEED_ITEM_BUDGET", 200)
 
 
-def find_company_website():
-    pass
+def find_company_website(company: CompanyRecord):
+    results = DDGS().text(f"{company.name} homepage", safesearch='off', backend="auto", max_results=1)
+    if results:
+        import pprint
+        pprint.pprint(results)
+        return results[0].get("href")
+    return None
 
 
 def find_position_job_description():
@@ -29,18 +35,25 @@ def do_feed_run():
     current_ts = datetime.now(tz=UTC)
 
     with Session(engine) as session:
-        stmt = select(CompanyRecord).where(CompanyRecord.url.in_(['', None])).limit(ITEM_BUDGET)
+        stmt = select(CompanyRecord).where(CompanyRecord.url.in_(["", None])).limit(ITEM_BUDGET)
         companies_to_update = session.exec(stmt).all()
 
         for idx, company in enumerate(companies_to_update):
             # Realistically, what can I REST API, google, scrape, or LLM?
             print(idx, company)
-            # response = requests.get(company.url)
+            if not company.url:
+                company_url = find_company_website(company)
+                if company_url:
+                    print(f"Updating company URL to {company_url}")
+                    company.url = company_url
+                    session.add(company)
+                    session.flush()
 
             current_ts = datetime.now(tz=UTC)
             if current_ts - start_ts > timedelta(seconds=TIME_BUDGET):
                 print(f"{TIME_BUDGET=} exceeded")
                 break
+        session.commit()
 
 
 if __name__ == "__main__":

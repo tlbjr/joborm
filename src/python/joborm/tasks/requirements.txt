@@ -1,0 +1,10 @@
+ddgs
+psycopg
+pydantic_settings
+requests
+sqlmodel
+structlog
+uuid-utils
+
+# dev tools
+black
