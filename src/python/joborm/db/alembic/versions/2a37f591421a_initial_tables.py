@@ -30,6 +30,7 @@ def upgrade() -> None:
         sa.Column("url", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("linkedin", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("glassdoor", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("crunchbase", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("github", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("size", sa.Integer(), nullable=True),
         sa.Column(
@@ -72,7 +73,7 @@ def upgrade() -> None:
         "opportunity",
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("company_id", sa.Uuid(), nullable=False),
-        sa.Column("position", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("url", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column(
             "location_type",

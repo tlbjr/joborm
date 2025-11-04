@@ -40,6 +40,7 @@ class CompanyBase(JoboBase):
     url: str | None = ""
     linkedin: str | None = ""
     glassdoor: str | None = ""
+    crunchbase: str | None = ""
     github: str | None = ""
     size: int | None = None
     company_type: CompanyType = CompanyType.UNKNOWN
@@ -114,7 +115,7 @@ class Process(JoboRecordBase, table=True):
 
 class OpportunityCreate(JoboBase):
     company_id: uuid.UUID
-    position: str
+    name: str
     url: str | None = ""
     location_type: LocationType = LocationType.UNKNOWN
     team: str | None = ""
@@ -135,7 +136,7 @@ class Opportunity(JoboRecordBase, table=True):
     __tablename__ = "opportunity"
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
     company_id: uuid.UUID = Field(foreign_key="company.id")
-    position: str
+    name: str
     url: str | None = ""
     location_type: LocationType = LocationType.UNKNOWN
     team: str | None = ""
