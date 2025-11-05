@@ -8,12 +8,8 @@ from fastapi import Depends, FastAPI, Response
 import structlog
 
 from db.pg import get_session, Session
-from db.services import CompanySvc, OpportunitySvc, ProcessSvc
+from db.services import OpportunitySvc, ProcessSvc
 from db.models import (
-    CompanyCreate,
-    CompanyPublic,
-    CompanyRecord,
-    CompanyUpdate,
     Opportunity,
     OpportunityCreate,
     Process,

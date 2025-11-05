@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """REST API for Job Opportunity Relationship Management"""
-import sys
 from typing import Annotated
 from uuid import UUID
 
@@ -8,17 +7,10 @@ from fastapi import Depends, APIRouter, Response
 import structlog
 
 from db.pg import get_session, Session
-from db.services import CompanySvc, OpportunitySvc, ProcessSvc
+from db.services import OpportunitySvc
 from db.models import (
-    CompanyCreate,
-    CompanyPublic,
-    CompanyRecord,
-    CompanyUpdate,
     Opportunity,
     OpportunityCreate,
-    Process,
-    ProcessItem,
-    ProcessCreate,
 )
 
 # TODO Junk seeding data for test; remove when datastore is in place
@@ -116,4 +108,3 @@ async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None 
         return Response('{"detail": "Error deleting opportunity"}', 422)
     session.commit()
     return None
-
