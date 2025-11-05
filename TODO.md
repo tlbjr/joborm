@@ -3,10 +3,10 @@
 2. Use testcontainers
 
 ## PUNT ##
-1. (Some) shared data models
+1. (Some?) shared data models
     * Who's allowed to edit and add companies and opportunities? Just me to start?
     * Maybe the user "requests" a new record and puts in details + a URL and the system snarfs.
-2. Drive by moderation
+2. Drive by (anonymous?) moderation
     1. Prompt for the correctness of scraped data
         If more than one user (try 3+?) say it's wrong, add it to a deny list and include that list in the search terms.
     2. Prompt for the correct data directly
@@ -22,7 +22,7 @@
     talos on-prem?
 6. Add test coverage tracking to pytests
 
-## ICE ##
+## ON ICE ##
 1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
     Remember to use subpath hosting instead of subdomain hosting for easier deployment
 2. (Need?) docker-compose
