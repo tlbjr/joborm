@@ -1,7 +1,6 @@
 ## DO ##
-2. Auth'd user: API_KEY, oauth, or both?
-3. Create pytest tests
-4. Use testcontainers
+1. Auth'd user: API_KEY, oauth, or both?
+2. Use testcontainers
 
 ## PUNT ##
 1. (Some) shared data models
@@ -21,6 +20,7 @@
     AWS CDK / ECS?
     k3s on that single inet host?
     talos on-prem?
+6. Add test coverage tracking to pytests
 
 ## ICE ##
 1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
@@ -60,4 +60,5 @@
     * A JD link (not necessary official)
 * Move to public GH repo.
 * Basic resource routers.
+* Basic pytest test.
 
