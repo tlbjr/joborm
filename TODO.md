@@ -1,5 +1,4 @@
 ## DO ##
-1. Breakout individual resources into their own router files.
 2. Auth'd user: API_KEY, oauth, or both?
 3. Create pytest tests
 4. Use testcontainers
@@ -60,4 +59,5 @@
         * LinkedIn
     * A JD link (not necessary official)
 * Move to public GH repo.
+* Basic resource routers.
 
