@@ -1,35 +1,45 @@
 ## DO ##
+1. Breakout individual resources into their own router files.
+2. Auth'd user: API_KEY, oauth, or both?
+3. Create pytest tests
+4. Use testcontainers
 
 ## PUNT ##
-1. Frontend: Auto-gen'd python and typescript clients
-2. Auth'd user: API_KEY, oauth, or both?
-3. (Some) shared data models
+1. (Some) shared data models
     * Who's allowed to edit and add companies and opportunities? Just me to start?
     * Maybe the user "requests" a new record and puts in details + a URL and the system snarfs.
-4. Data scraper(s)
+2. Drive by moderation
+    1. Prompt for the correctness of scraped data
+        If more than one user (try 3+?) say it's wrong, add it to a deny list and include that list in the search terms.
+    2. Prompt for the correct data directly
+    3. Control how often the prompts go out
+    4. Capture moderation success and failure rates
+3. Implement an audit / history table
+4. Implement OSS observability solutions
+5. Basic hosting
+    single inet host + let's encrypt?
+    AWS and zappa (serverless)?
+    AWS CDK / ECS?
+    k3s on that single inet host?
+    talos on-prem?
+
+## ICE ##
+1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
+    Remember to use subpath hosting instead of subdomain hosting for easier deployment
+2. (Need?) docker-compose
+3. (Need?) AWS CDK, ECS, and Fargate?
+4. (Need?) AKS w/control plane on tailscale?
+5. (Need?) Async tasks (long running); rq? celery (beat)? argo workflow? APScheduler?
+6. Service stack as VS code tasks
+7. Dev CLI
+8. Richer models
+    * team size, HRM contact, recruiting contact, WLB fields, etc.
+9. More data scraper(s) / integrations
     * Company info
         * Number of employees
         * Incorporation type and fundraising stage
     * Position info
-        * Official JD
         * LinkedIn, etc. links
-5. Create pytest tests
-6. Use testcontainers
-7. Basic hosting
-8. Automatic moderation
-    1. Prompt for the correctness of scraped data
-        If more than one user (try 3+?) say it's wrong, add it to a deny list and include that list in the search terms.
-    2. Prompt for the correct data directly
-9. Implement an audit / history table
-10. Implement OSS observability solutions
-
-## ICE ##
-1. (Need?) docker-compose
-1. (Need?) AWS CDK, ECS, and Fargate?
-1. (Need?) AKS w/control plane on tailscale?
-2. (Need?) Async tasks (long running); rq? celery (beat)? argo workflow? APScheduler?
-3. Service stack as VS code tasks
-4. Dev CLI
 
 ## DONE ##
 * Basic README.
@@ -48,5 +58,6 @@
         * Crunchbase
         * Glassdoor
         * LinkedIn
+    * A JD link (not necessary official)
 * Move to public GH repo.
 
