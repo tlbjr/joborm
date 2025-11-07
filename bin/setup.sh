@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="${SCRIPT_DIR}/.."
 
-pushd ${ROOT_DIR}
+pushd ${ROOT_DIR} > /dev/null
 
 PYTHON=python3
 if [ "`which python3`" == "" ];

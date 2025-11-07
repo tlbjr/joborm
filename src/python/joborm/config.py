@@ -11,6 +11,10 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: HttpUrl | None = None
 
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_CLIENT_HTTP: bool = False
+
     POOL_PRE_PING: bool = True
     POSTGRES_ECHO: bool = False
 

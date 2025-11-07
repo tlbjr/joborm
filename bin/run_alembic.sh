@@ -7,7 +7,7 @@ ROOT_DIR=$SCRIPT_DIR/..
 
 source ${ROOT_DIR}/bin/setup.sh
 
-pushd ${ROOT_DIR}/src/python/joborm
+pushd ${ROOT_DIR}/src/python/joborm > /dev/null
 
 alembic upgrade head
 

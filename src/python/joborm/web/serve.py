@@ -20,14 +20,13 @@ from db.models import (
 from web.routers.company import router as CompanyRouter
 from web.routers.opportunity import router as OpportunityRouter
 from web.routers.process import router as ProcessRouter
+from web.routers.sso import router as SSORouter
 
-# TODO Junk seeding data for test; remove when datastore is in place
-# from sample_data import companies, opportunities
 
 logger = structlog.stdlib.get_logger()
 
 app = FastAPI()
-for router in [CompanyRouter, OpportunityRouter, ProcessRouter]:
+for router in [CompanyRouter, OpportunityRouter, ProcessRouter, SSORouter]:
     app.include_router(router)
 
 SessionDep = Annotated[Session, Depends(get_session)]

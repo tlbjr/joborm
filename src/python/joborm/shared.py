@@ -3,7 +3,7 @@
 try:
     from enum import StrEnum
 except ImportError:
-    from backports.strenum import StrEnum
+    from backports.strenum import StrEnum  # type: ignore
 
 
 class CompanyType(StrEnum):
