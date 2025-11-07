@@ -2,9 +2,24 @@
 
 Like a reverse ATS/CRM for job hunters.
 
+## OS Setup ##
+
+Ubuntu or WSL:
+
+```
+sudo apt install python3-venv libpq-dev jq
+```
+
+You probably want this in your tmux.conf file if it's not there already.
+```
+echo "set -g mouse on" >> .tmux.conf
+```
+
+
 ## Setup ##
 
 Bootstrap a virtual environment and activate it.
+
 ```
 source ./bin/setup.sh
 ```
