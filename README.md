@@ -2,7 +2,7 @@
 
 Like a reverse ATS/CRM for job hunters.
 
-## OS Setup ##
+## OS set up ##
 
 Ubuntu or WSL:
 
@@ -16,7 +16,7 @@ echo "set -g mouse on" >> .tmux.conf
 ```
 
 
-## Setup ##
+## Dev environment set up ##
 
 Bootstrap a virtual environment and activate it.
 
@@ -26,8 +26,8 @@ source ./bin/setup.sh
 
 ## Usage ##
 
-Setup a 3 pane dev loop with tmux.
-Note: This is slow to be up for some reason!
+Setup a 4 pane dev loop with tmux.
+Note: The API server is slow to come up for some reason!
 
 ```
 ./bin/tmux.sh
@@ -38,7 +38,7 @@ Note: This is slow to be up for some reason!
 ```
 git clone ...
 ./bin/setup.sh
-./bin/tmux.sh  # Setup a 3 pane tight dev loop with tmux.
+./bin/tmux.sh  # Setup a 4 pane tight dev loop with tmux.
 # Create and fix all the things here.
 # Try the quality and change control guardrails.
 ./bin/fmt.sh

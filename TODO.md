@@ -22,7 +22,7 @@
     talos on-prem?
 6. Add test coverage tracking to pytests
 
-## ON ICE ##
+## ICE BOX ##
 1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
     Remember to use subpath hosting instead of subdomain hosting for easier deployment
 2. (Need?) docker-compose
