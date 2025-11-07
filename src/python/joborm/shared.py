@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Schemas for Job Opportunity Relationship Management"""
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from backports.strenum import StrEnum
 
 
 class CompanyType(StrEnum):

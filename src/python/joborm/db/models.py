@@ -1,9 +1,8 @@
-from datetime import datetime
-
 try:
-    from datetime import UTC
+    from datetime import datetime, UTC
 except Exception as _:
-    from datetime.timezone import utc as UTC
+    from datetime import datetime, timezone
+    UTC = timezone.utc
 from typing import List, Optional
 
 from pydantic import ConfigDict

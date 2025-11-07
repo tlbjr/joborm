@@ -3,7 +3,9 @@
 set -e
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ROOT_DIR=$SCRIPT_DIR/..
+ROOT_DIR="${SCRIPT_DIR}/.."
+
+pushd ${ROOT_DIR}
 
 PYTHON=python3
 if [ "`which python3`" == "" ];
@@ -12,12 +14,14 @@ then
 fi
 
 # TODO Move to pyproject.toml, uv bootstrap, and uv sync
-if [ ! -e ${ROOT_DIR}/venv ];
+if [ ! -e "${ROOT_DIR}/venv" ] || [ "${ROOT_DIR}/venv" -ot "${ROOT_DIR}/src/python/joborm/requirements.txt" ];
 then
     echo "Creating virtual environment"
-    $PYTHON -m venv venv
+    $PYTHON -m venv ${ROOT_DIR}/venv
     echo "Installing requirements"
     ${ROOT_DIR}/venv/bin/pip install -r src/python/joborm/requirements.txt
+
+    touch ${ROOT_DIR}/venv
 fi
 
 source ${ROOT_DIR}/venv/bin/activate
