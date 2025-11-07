@@ -1,6 +1,7 @@
 ## DO ##
-1. Auth'd user: API_KEY, oauth, or both?
-2. Use testcontainers
+1. User accounts (Google SSO) in the datastore.
+2. dotenv support for local dev
+3. Use testcontainers
 
 ## PUNT ##
 1. (Some?) shared data models
@@ -24,7 +25,7 @@
 
 ## ICE BOX ##
 1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
-    Remember to use subpath hosting instead of subdomain hosting for easier deployment
+    Remember to use subpath hosting by a proxy instead of subdomain hosting for easier deployment
 2. (Need?) docker-compose
 3. (Need?) AWS CDK, ECS, and Fargate?
 4. (Need?) AKS w/control plane on tailscale?
@@ -61,4 +62,5 @@
 * Move to public GH repo.
 * Basic resource routers.
 * Basic pytest test.
+* Basic Google SSO.
 
