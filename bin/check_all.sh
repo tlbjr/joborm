@@ -8,6 +8,16 @@ ROOT_DIR=$SCRIPT_DIR/..
 source ${ROOT_DIR}/bin/setup.sh
 
 ${ROOT_DIR}/bin/fmt.sh
-${ROOT_DIR}/bin/lint.sh $1
+
+if [ "$1" == "fix" ];
+then
+	${ROOT_DIR}/bin/lint.sh --fix
+fi
+
 ${ROOT_DIR}/bin/type_check.sh
-${ROOT_DIR}/bin/docker.sh
+
+if [ "$1" != "nodocker" ];
+then
+	${ROOT_DIR}/bin/docker.sh
+fi
+

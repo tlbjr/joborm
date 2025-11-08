@@ -12,7 +12,7 @@ pushd ${ROOT_DIR}/src/python/joborm > /dev/null
 if [ "$1" != "" ];
 then
 
-	alembic $@
+	alembic "$@"
 else
 	alembic upgrade head
 fi

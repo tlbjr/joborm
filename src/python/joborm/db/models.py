@@ -188,5 +188,18 @@ class UserRecord(UserUpdate, JoboRecordBase, table=True):
     """User records have non-public field and basic audit fields"""
 
     __tablename__ = "user"
+    foreign_id: Optional[str]
     user_from: UserFrom = UserFrom.MANUAL
     model_config = ConfigDict(use_enum_values=True)
+
+
+class UserGoogleSSO(JoboBase):
+    """User format returned by Google SSO"""
+
+    id: str
+    email: str
+    first_name: str
+    last_name: str
+    display_name: str
+    picture: str
+    provider: str = "google"

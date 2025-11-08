@@ -216,6 +216,7 @@ def upgrade() -> None:
         sa.Column("last_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("display_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("foreign_id", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.Column("user_from", sa.Enum("GOOGLE", "MANUAL", name="userfrom"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -233,4 +234,5 @@ def downgrade() -> None:
     op.execute("DROP TYPE companytype")
     op.execute("DROP TYPE locationtype")
     op.execute("DROP TYPE contacttype")
+    op.execute("DROP TYPE userfrom")
     # ### end Alembic commands ###
