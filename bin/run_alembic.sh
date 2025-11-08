@@ -9,5 +9,12 @@ source ${ROOT_DIR}/bin/setup.sh
 
 pushd ${ROOT_DIR}/src/python/joborm > /dev/null
 
-alembic upgrade head
+if [ "$1" != "" ];
+then
+
+	alembic $@
+else
+	alembic upgrade head
+fi
+
 

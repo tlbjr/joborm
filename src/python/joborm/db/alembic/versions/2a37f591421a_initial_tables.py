@@ -205,6 +205,20 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_table(
+        "user",
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("created_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_by", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("email", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("first_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("last_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("display_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("user_from", sa.Enum("GOOGLE", "MANUAL", name="userfrom"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+    )
     # ### end Alembic commands ###
 
 

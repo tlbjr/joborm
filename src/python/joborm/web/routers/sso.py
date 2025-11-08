@@ -3,6 +3,9 @@ from fastapi_sso.sso.google import GoogleSSO
 import structlog
 
 from config import settings
+from db.models import UserRecord
+from db.services import UserSvc
+from shared import UserFrom
 
 logger = structlog.stdlib.get_logger()
 
@@ -25,17 +28,26 @@ async def google_login(google_sso: GoogleSSO = Depends(get_google_sso)):
 
 @router.get("/google/callback")
 async def google_callback(request: Request, google_sso: GoogleSSO = Depends(get_google_sso)):
-    user = await google_sso.verify_and_process(request)
-    logger.info(user)
-    """ Format:
-        {
-            "id":"<number>",
-            "email":"<email>",
-            "first_name":"<first>",
-            "last_name":"<last>",
-            "display_name":"<display name>",
-            "picture":"https://<host>/<path>",
-            "provider":"google"
-        }
+    """Allow a Google SSO user to login
+
+    user data available after verification:
+    {
+        "id":"<number>",
+        "email":"<email>",
+        "first_name":"<first>",
+        "last_name":"<last>",
+        "display_name":"<display name>",
+        "picture":"https://<host>/<path>",
+        "provider":"google"
+    }
     """
+    user = await google_sso.verify_and_process(request)
+    logger.debug(user)
+    user_rec = UserSvc.get_by_email(user.get("email"))
+    if user_rec is None:
+        user_new = UserRecord.model_validate(user)
+        user_new.user_from = UserFrom.GOOGLE
+        user_rec = UserSvc.insert_user_record(user_new)
+
+    # TODO Allow the user to continue where they left off
     return user

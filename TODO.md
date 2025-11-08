@@ -1,7 +1,8 @@
 ## DO ##
-1. User accounts (Google SSO) in the datastore.
+1. User accounts (Google SSO) in the datastore
 2. dotenv support for local dev
-3. Use testcontainers
+3. CSV loader (/uploader?)
+4. Use testcontainers
 
 ## PUNT ##
 1. (Some?) shared data models

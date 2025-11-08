@@ -11,6 +11,9 @@ from db.models import (
     Process,
     ProcessItem,
     ProcessItemCreate,
+    UserCreate,
+    UserPublic,
+    UserRecord,
 )
 
 
@@ -117,3 +120,19 @@ class ProcessSvc:
     @classmethod
     def delete_process_items(cls, session, process_id: uuid.UUID):
         return session.execute(delete(ProcessItem).where(ProcessItem.process_id == process_id))
+
+
+class UserSvc:
+    @classmethod
+    def insert_user(cls, session, user: UserCreate) -> UserPublic:
+        """Create a user record"""
+        user_rec = UserRecord.model_validate(user)
+        session.add(user_rec)
+        session.flush()
+        session.refresh(user_rec)
+        return user_rec
+
+    @classmethod
+    def get_by_email(cls, session, email: str) -> UserRecord | None:
+        """Return a company record by id"""
+        return session.scalars(select(UserRecord).where(UserRecord.email == email)).first()

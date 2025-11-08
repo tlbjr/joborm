@@ -10,7 +10,7 @@ from pydantic import ConfigDict
 from sqlmodel import DateTime, Field, Relationship, SQLModel
 import uuid_utils.compat as uuid
 
-from shared import CompanyType, ContactType, LocationType, ProcessItemType
+from shared import CompanyType, ContactType, LocationType, ProcessItemType, UserFrom
 
 
 class JoboBase(SQLModel):
@@ -55,13 +55,13 @@ class CompanyCreate(CompanyBase):
 
 
 class CompanyUpdate(CompanyBase):
-    """Updating or soft-deleting a company requires it's id"""
+    """Updating or soft-deleting a company requires its id"""
 
     id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
 
 
 class CompanyPublic(CompanyUpdate):
-    """Company's are returned with their opportunities or an empty list"""
+    """Companys are returned with their opportunities or an empty list"""
 
     opportunities: List["Opportunity"] = []
 
@@ -154,4 +154,39 @@ class Opportunity(JoboRecordBase, table=True):
 
     company: CompanyRecord = Relationship(back_populates="opportunities")
 
+    model_config = ConfigDict(use_enum_values=True)
+
+
+class UserBase(JoboBase):
+    """Base user data for display purposes"""
+
+    email: str
+    first_name: str
+    last_name: str
+    display_name: str
+
+
+class UserCreate(UserBase):
+    """User creation requires only the basic information"""
+
+    pass
+
+
+class UserUpdate(UserBase):
+    """Updating or soft-deleting a user requires its id"""
+
+    id: uuid.UUID | None = Field(default_factory=uuid.uuid7, primary_key=True)
+
+
+class UserPublic(UserUpdate):
+    """Users are returned ready for use/update (including id)"""
+
+    pass
+
+
+class UserRecord(UserUpdate, JoboRecordBase, table=True):
+    """User records have non-public field and basic audit fields"""
+
+    __tablename__ = "user"
+    user_from: UserFrom = UserFrom.MANUAL
     model_config = ConfigDict(use_enum_values=True)

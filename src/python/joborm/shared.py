@@ -51,8 +51,15 @@ class LocationType(StrEnum):
 
 
 class ContactType(StrEnum):
-    """The type of with"""
+    """The type of contact"""
 
     EXTERNAL = "External"
     INTERNAL = "Internal"
     UNKNOWN = "Unknown"
+
+
+class UserFrom(StrEnum):
+    """Where the user account originaters"""
+
+    GOOGLE = "Google"
+    MANUAL = "Manual"
