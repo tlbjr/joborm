@@ -1,8 +1,6 @@
 ## DO ##
-1. User accounts (Google SSO) in the datastore
-2. dotenv support for local dev
-3. CSV loader (/uploader?)
-4. Use testcontainers
+1. dotenv support for local dev
+2. CSV loader (/uploader?)
 
 ## PUNT ##
 1. (Some?) shared data models
@@ -23,6 +21,7 @@
     k3s on that single inet host?
     talos on-prem?
 6. Add test coverage tracking to pytests
+7. Use testcontainers
 
 ## ICE BOX ##
 1. (Scaffold use cases first) Frontend: Auto-gen'd python and typescript clients
@@ -63,5 +62,5 @@
 * Move to public GH repo.
 * Basic resource routers.
 * Basic pytest test.
-* Basic Google SSO.
+* Basic Google SSO user accounts.
 
