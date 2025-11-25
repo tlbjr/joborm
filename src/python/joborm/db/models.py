@@ -157,6 +157,17 @@ class Opportunity(JoboRecordBase, table=True):
     model_config = ConfigDict(use_enum_values=True)
 
 
+class OpportunityPage(JoboBase):
+    url: str | None = ""
+    content: Optional[str] = None
+
+
+class OpportunitySimple(JoboBase):
+    company_name: str
+    opportunity_name: str
+    url: str
+
+
 class UserBase(JoboBase):
     """Base user data for display purposes"""
 

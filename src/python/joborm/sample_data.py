@@ -34,7 +34,8 @@ TODO:
 import copy
 
 
-from schemas import Company, CompanyType, Opportunity, Process, ProcessItem, ProcessItemType
+from schemas import Company, Opportunity, Process, ProcessItem
+from shared import CompanyType, ProcessItemType
 
 samp_company_1 = Company.model_validate(
     {

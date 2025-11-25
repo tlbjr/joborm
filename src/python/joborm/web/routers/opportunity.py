@@ -3,7 +3,9 @@
 from typing import Annotated
 from uuid import UUID
 
+import aiohttp
 from fastapi import Depends, APIRouter, Response
+import requests
 import structlog
 
 from db.pg import get_session, Session
@@ -11,6 +13,8 @@ from db.services import OpportunitySvc
 from db.models import (
     Opportunity,
     OpportunityCreate,
+    OpportunityPage,
+    OpportunitySimple,
 )
 
 # TODO Junk seeding data for test; remove when datastore is in place
@@ -108,3 +112,57 @@ async def delete_opportunity(opportunity_id: UUID, session: SessionDep) -> None 
         return Response('{"detail": "Error deleting opportunity"}', 422)
     session.commit()
     return None
+
+
+@router.post("/opportunity/ingest", response_model=Opportunity)
+async def ingest_opportunity(
+    opportunity_page: OpportunityPage, session: SessionDep
+) -> Opportunity | Response:
+    """Create an opportunity resource from web page details"""
+
+    opportunity_rec = None
+    # TODO Check for the url first. Existing opp? If not, queue for ingest.
+    # response = requests.get(opportunity_page.url)
+    logger.debug(f"Fetching {opportunity_page.url=}")
+
+    # TODO Move fetch to queue/async calls
+    async def get_page():
+        """Helper function to use the async loop of fastapi"""
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(opportunity_page.url)
+            return await response.text()
+
+    try:
+        response_html = await get_page()
+    except Exception as _:
+        response_html = None
+        trace_back.print_exc()
+
+    # TODO Move parsing to util lib
+    def _names_from_html(soup):
+        """Parse an HTML page for company and opportunity names"""
+        from bs4 import BeautifulSoup
+
+        soup = BeautifulSoup(response_html, "html.parser")
+        clean = str(soup.title).replace("<title>", "").replace("</title>", "")
+        logger.debug(f"{soup.title=} and {clean=}")
+        data = clean.replace(" | LinkedIn", "").split(" hiring ")
+        company_name = data[0]
+        opportunity_name = data[1].split(" in ")[0]
+        logger.debug(f"{company_name=} {opportunity_name=}")
+        return company_name, opportunity_name
+
+    if response_html is not None:
+        company_name, opportunity_name = _names_from_html(response_html)
+        if company_name is not None and opportunity_name is not None:
+            opportunity = OpportunitySimple(
+                company_name=company_name,
+                opportunity_name=opportunity_name,
+                url=opportunity_page.url,
+            )
+            opportunity_rec = OpportunitySvc.ingest_opportunity_from_url(session, opportunity)
+            logger.debug("Calling commit")
+            session.commit()
+            session.refresh(opportunity_rec)
+
+    return opportunity_rec

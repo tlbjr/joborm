@@ -1,0 +1,5 @@
+# This .env can be in the root directory or in src/python/joborm
+export JOBORM_GOOGLE_CLIENT_ID=
+export JOBORM_GOOGLE_CLIENT_SECRET=
+export JOBORM_GOOGLE_CLIENT_REDIRECT_URI=
+export JOBORM_GOOGLE_CLIENT_HTTP=

@@ -8,6 +8,8 @@ from db.models import (
     CompanyRecord,
     CompanyUpdate,
     Opportunity,
+    OpportunityCreate,
+    OpportunitySimple,
     Process,
     ProcessItem,
     ProcessItemCreate,
@@ -33,6 +35,11 @@ class CompanySvc:
     def get_by_id(cls, session: Session, company_id: uuid.UUID) -> CompanyRecord | None:
         """Return a company record by id"""
         return session.scalars(select(CompanyRecord).where(CompanyRecord.id == company_id)).first()
+
+    @classmethod
+    def get_by_name(cls, session: Session, name: str) -> UserRecord | None:
+        """Return a company record by name"""
+        return session.scalars(select(CompanyRecord).where(CompanyRecord.name == name)).first()
 
     @classmethod
     def update_company(cls, session: Session, company: CompanyUpdate) -> CompanyPublic:
@@ -80,6 +87,24 @@ class OpportunitySvc:
         """Delete an opportunity record"""
         session.delete(opportunity)
         session.flush()
+
+    @classmethod
+    def ingest_opportunity_from_url(
+        cls, session: Session, opportunity: OpportunitySimple
+    ) -> Opportunity:
+        """Create an opportunity record with minimal information"""
+
+        company_rec = CompanySvc.get_by_name(session, opportunity.company_name)
+        if company_rec is None:
+            company = CompanyCreate(name=opportunity.company_name)
+            company_rec = CompanySvc.insert_company(session, company)
+        opportunity = Opportunity(
+            name=opportunity.opportunity_name, url=opportunity.url, company_id=company_rec.id
+        )
+        session.add(opportunity)
+        session.flush()
+        session.refresh(opportunity)
+        return opportunity
 
 
 class ProcessSvc:
