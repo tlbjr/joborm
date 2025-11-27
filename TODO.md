@@ -1,6 +1,5 @@
 ## DO ##
-1. dotenv support for local dev
-2. CSV loader (/uploader?)
+1. CSV loader (/uploader?)
 
 ## PUNT ##
 1. (Some?) shared data models
@@ -63,4 +62,5 @@
 * Basic resource routers.
 * Basic pytest test.
 * Basic Google SSO user accounts.
+* Basic dotenv support for local dev.
 
